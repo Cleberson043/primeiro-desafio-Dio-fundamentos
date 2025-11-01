@@ -1,0 +1,158 @@
+
+menu = """
+  [d] Depósitar
+  [s] Sacar
+  [e] Extrato
+  [nc] Nova conta          
+  [lc] Listar contas       
+  [nu] Novo usuário
+  [q] Sair
+  
+  """
+agencia = "0001"
+saldo = 0
+limite = 500
+extrato = ""
+numero_saques = 0
+limite_saques = 3
+usuarios = []
+contas = []
+numero_de_contas = 1
+
+
+
+
+
+def depositar(saldo, valor,extrato ,/):
+    if valor >0:
+        saldo += valor
+        extrato += f"O valor de RS {valor} foi depositado"
+        print(f"== Tem um novo valor de R$ {valor:.2f} em sua conta ==")
+    else:
+        print("A Operação falhou")
+    return saldo, extrato
+
+def sacar(*, saldo, valor, extrato, limite, numero_saques, limite_saques):
+
+    # verificar os limites
+    excedeu_saldo = valor > saldo
+    excedeu_limite = valor > limite
+    excedeu_saques = numero_saques > limite_saques
+
+    if excedeu_limite:
+        print("Ops: Parece que você não tem limite")
+    elif excedeu_saldo:
+        print("Saldo insuficiente")
+    elif excedeu_saques:
+        print("você ja usou seus limites de saque por hoje")
+    elif valor > 0:
+        saldo -= valor
+        extrato += f"{valor}"
+        numero_saques += 1
+        print("---SAQUE REALIZADO COM SUCESSO---")
+        print(f"Um valor de R$ {valor:.2f}, saiu da sua conta")
+        print(f"Seu saldo atual é de R$ {saldo:.2f}")
+    else:
+        print("A operação falhou")
+
+    return saldo, extrato, numero_saques
+
+
+def exibir_extrato(saldo,/,*, extrato):
+    if not extrato:
+        print("Não encontrei movimentações nos seus extratos")
+    else:
+        print(f"\nSaldo: R$ {saldo:.2f}")
+
+def verificar_existe_usuario(cpf, usuarios):
+    for usuario in usuarios:
+        if usuario["cpf"] == cpf:
+            return usuario
+    return None
+
+def criar_usuario(usuarios):
+    cpf = input("informe o seu cpf")
+    usuario = verificar_existe_usuario(cpf,usuarios)
+
+    if usuario:
+        print("ja existe um usuario com esse CPF")
+        return
+    nome = input("Nome completo")
+    data_nascimento = input("informe sua data de nascimento")
+    endereco = input("Informe seu endereço (logradouro, numero - bairro - cidade/sigla estado)")
+
+    novo_usuario = {
+        "nome": nome,
+        "data_nascimento":data_nascimento,
+        "cpf": cpf,
+        "endereco ": endereco,
+    }
+
+    usuarios.append(novo_usuario)
+    print("..... Usuário criado com sucesso! .....")
+
+
+def criar_conta(agencia, numero_conta, usuarios):
+    cpf = input("Infome seu cpf")
+    usuario = verificar_existe_usuario(cpf, usuarios)
+
+    if usuario:
+        print("....Conta criada com sucesso! ....")
+        return{
+            "Agencia":agencia,
+            "numero_conta":numero_conta,
+            "Usuario": usuario
+        }
+    else:
+        print("Usuario não encontrado")
+
+def listar_contas(contas):
+    for conta in contas:
+        lista = f"agencia{conta["agencia"]}"
+        lista1 = f"conta{conta["numero_de_contas"]}"
+        lista2 =  f"Titular{conta["usuario"]["nome"]}"
+        print(lista)
+        print(lista1)
+        print(lista2)
+
+
+while True:
+    opcao = input(menu)
+
+    if opcao == "d":
+        valor = float(input("Informe o valor do depósito: "))
+        saldo, extrato = depositar(saldo, valor, extrato)
+
+
+    elif opcao == "s":
+        valor = float(input("Qual valor de saque?"))
+        saldo, extrato, numero_saques = sacar(
+            saldo=saldo,
+            valor=valor,
+            extrato=extrato,
+            limite=limite,
+            numero_saques=numero_saques,
+            limite_saques=limite_saques,
+
+
+        )
+    elif opcao =="e":
+        exibir_extrato(saldo,extrato=extrato)
+
+    elif opcao == "nu":
+        criar_usuario(usuarios)
+
+    elif opcao =="nc":
+        conta = criar_conta(agencia, numero_de_contas,usuarios)
+        if conta:
+            contas.append(conta)
+            numero_de_contas +=1
+
+    elif opcao == "lc":
+        listar_contas(contas)
+
+    elif opcao == "q":
+        break
+
+    else:
+        print("Operação inválida, por favor selecione novamente a operação desejada.")
